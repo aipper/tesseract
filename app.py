@@ -19,7 +19,7 @@ def checkStr(nested_list_or_tuple):
 
 @app.route('/')
 def hello_world():
-    url = "https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/bd502b5cafd44b26820a134ad2ea598c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1512:0:0:0.awebp"
+    url = request.args.get('url', '')
     image = Image.open(requests.get(url, stream=True).raw)
     img = image.convert('L')
     threshold = 69
