@@ -31,14 +31,13 @@ def hello_world():
         else:
             table.append(0)
     img = img.point(table, '1')
-    img.save("1.png")
-    text=pytesseract.image_to_string(Image.open('1.png'), lang='chi_sim')
+    text=pytesseract.image_to_string(img, lang='chi_sim')
     data = {
         "code": 200,
         # "result": "".join(checkStr(result))
         "result": text
     }
-    return jsonify()
+    return jsonify(data)
 
 
 if __name__ == '__main__':
