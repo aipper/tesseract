@@ -17,9 +17,10 @@ def checkStr(nested_list_or_tuple):
     return results
 
 
-@app.route('/')
+@app.route('/',methods=['POST'])
 def hello_world():
-    url = request.args.get('url', '')
+    url = request.get_json().get('url')
+    print('url:',url)
     image = Image.open(requests.get(url, stream=True).raw)
     img = image.convert('L')
     threshold = 69
