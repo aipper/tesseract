@@ -7,7 +7,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# --- !! 修改这里：添加 libglib2.0-0 !! ---
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -25,11 +24,9 @@ COPY pyproject.toml uv.lock ./
 RUN echo "Attempting installation using 'uv pip install . --system'" && \
     uv pip install . -v --no-cache --system
 
-# 运行 Python 代码触发模型下载
-RUN echo "Attempting to download RapidOCR models..." && \
-    python -c "from rapidocr import RapidOCR; print('Initializing OCR engine to download models...'); engine = RapidOCR(); print('Models downloaded.')" && \
-    echo "Listing downloaded models:" && \
-    ls -la /root/.RapidOCR && \
+# 运行 Python 代码确认初始化成功，但不再检查 /root/.RapidOCR
+RUN echo "Verifying RapidOCR initialization..." && \
+    python -c "from rapidocr import RapidOCR; print('Initializing OCR engine...'); engine = RapidOCR(); print('RapidOCR initialized successfully.')" && \
     echo "Cleanup build artifacts..." && \
     find /app -name '*.pyc' -delete && \
     find /app -name '__pycache__' -type d -delete
@@ -42,7 +39,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# --- !! 修改这里：同样添加 libglib2.0-0 !! ---
+# 安装运行时系统依赖
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -59,12 +56,12 @@ RUN groupadd -r appuser && \
     chown -R appuser:appuser /home/appuser && \
     chown -R appuser:appuser /app
 
-# 复制 Python 环境
+# 复制 Python 环境 (包含 site-packages 里的 rapidocr 及其自带模型)
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# 复制模型
-COPY --from=builder --chown=appuser:appuser /root/.RapidOCR /home/appuser/.RapidOCR
+# --- !! 移除这一行：不再需要复制单独的模型目录 !! ---
+# COPY --from=builder --chown=appuser:appuser /root/.RapidOCR /home/appuser/.RapidOCR
 
 # 复制应用代码
 COPY --chown=appuser:appuser . .
