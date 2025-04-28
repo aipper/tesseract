@@ -7,13 +7,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# --- !! 修改这里：添加 libgl1-mesa-glx !! ---
+# --- !! 修改这里：添加 libglib2.0-0 !! ---
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsm6 \
         libxext6 \
-        libgl1-mesa-glx && \
+        libgl1-mesa-glx \
+        libglib2.0-0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -23,15 +24,6 @@ COPY pyproject.toml uv.lock ./
 
 RUN echo "Attempting installation using 'uv pip install . --system'" && \
     uv pip install . -v --no-cache --system
-
-# --- 验证步骤现在可以考虑移除了，因为安装应该成功了 ---
-# RUN echo "Searching for rapidocr installation location..." && \
-#     find /usr/local/lib/python3.13 -type d -name "rapidocr" -ls && \
-#     python -c "import rapidocr; print(rapidocr.__file__)" || echo "Could not import rapidocr or find its file" && \
-#     echo "--- Search complete ---"
-# RUN echo "Verifying rapidocr installation (pip show)..." && \
-#     python -m pip show rapidocr && \
-#     echo "Rapidocr pip show verification complete."
 
 # 运行 Python 代码触发模型下载
 RUN echo "Attempting to download RapidOCR models..." && \
@@ -50,13 +42,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# --- !! 修改这里：同样添加 libgl1-mesa-glx !! ---
+# --- !! 修改这里：同样添加 libglib2.0-0 !! ---
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsm6 \
         libxext6 \
-        libgl1-mesa-glx && \
+        libgl1-mesa-glx \
+        libglib2.0-0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
