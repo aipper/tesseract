@@ -1,26 +1,27 @@
 from flask import Flask, request, jsonify
 from PIL import Image
+from rapidocr import RapidOCR
 import requests
-import pytesseract
 import logging
 import base64
 import io
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
+engine = RapidOCR()
 
 
 def readImage(image):
-    # 使用 pytesseract 进行 OCR 识别
-    text = pytesseract.image_to_string(image, lang='chi_sim')
+    text = engine(image).txts
     app.logger.info("text: %s", text)
-
     data = {
         "code": 200,
         "result": text
     }
     return jsonify(data)
-
+@app.route('/test')
+def test():
+    return readImage(Image.open("1.jpg"))
 
 @app.route('/file', methods=['POST'])
 def files():

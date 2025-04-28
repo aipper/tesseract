@@ -1,16 +1,16 @@
-[tool.poetry]
-name = "dcocr"
+[project]
+name = "tesseract"
 version = "0.1.0"
-description = ""
-authors = ["aipper <aipper@qq.com>"]
+description = "Add your description here"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.9"
-flask = "^3.0.3"
-pytesseract = "^0.3.10"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires-python = ">=3.13"
+dependencies = [
+    "blinker==1.9.0",
+    "click==8.1.8",
+    "flask==3.1.0",
+    "itsdangerous==2.2.0",
+    "jinja2==3.1.6",
+    "markupsafe==3.0.2",
+    "pillow==11.2.1",
+    "werkzeug==3.1.3",
+]
