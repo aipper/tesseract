@@ -18,8 +18,9 @@ RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir --upgrade pip uv -i https://pypi.tuna.tsinghua.edu.cn/simple
-COPY requirements.txt .
-RUN uv pip sync requirements.txt --no-cache
+COPY pyproject.toml .
+COPY uv.lock .
+RUN uv sync
 
 # 运行 Python 代码触发模型下载
 RUN python -c "from rapidocr import RapidOCR; print('Initializing OCR engine to download models...'); engine = RapidOCR(); print('Models should be downloaded.')" \
