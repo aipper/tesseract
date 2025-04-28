@@ -11,6 +11,8 @@ dependencies = [
     "itsdangerous==2.2.0",
     "jinja2==3.1.6",
     "markupsafe==3.0.2",
+    "onnxruntime>=1.21.1",
     "pillow==11.2.1",
+    "rapidocr>=2.0.7",
     "werkzeug==3.1.3",
 ]
