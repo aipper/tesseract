@@ -7,36 +7,37 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# 安装构建和运行时所需的系统依赖，并更换 apt 源
+# --- !! 修改这里：添加 libgl1-mesa-glx !! ---
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsm6 \
-        libxext6 && \
+        libxext6 \
+        libgl1-mesa-glx && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 安装 uv 并升级 pip
 RUN pip install --no-cache-dir --upgrade pip uv -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 COPY pyproject.toml uv.lock ./
 
-# 使用 uv 安装 Python 依赖
-RUN uv sync
+RUN echo "Attempting installation using 'uv pip install . --system'" && \
+    uv pip install . -v --no-cache --system
 
-# --- !! 添加验证步骤 !! ---
-# 检查 rapidocr 是否确实被 uv sync 安装了
-RUN echo "Verifying rapidocr installation..." && \
-    python -m pip show rapidocr && \
-    # 或者尝试 uv 命令: uv pip show rapidocr
-    echo "Rapidocr verification complete."
-# --- !! 验证步骤结束 !! ---
+# --- 验证步骤现在可以考虑移除了，因为安装应该成功了 ---
+# RUN echo "Searching for rapidocr installation location..." && \
+#     find /usr/local/lib/python3.13 -type d -name "rapidocr" -ls && \
+#     python -c "import rapidocr; print(rapidocr.__file__)" || echo "Could not import rapidocr or find its file" && \
+#     echo "--- Search complete ---"
+# RUN echo "Verifying rapidocr installation (pip show)..." && \
+#     python -m pip show rapidocr && \
+#     echo "Rapidocr pip show verification complete."
 
-# 运行 Python 代码触发模型下载 (改用 python -c)
+# 运行 Python 代码触发模型下载
 RUN echo "Attempting to download RapidOCR models..." && \
     python -c "from rapidocr import RapidOCR; print('Initializing OCR engine to download models...'); engine = RapidOCR(); print('Models downloaded.')" && \
     echo "Listing downloaded models:" && \
-    ls -l /root/.RapidOCR && \
+    ls -la /root/.RapidOCR && \
     echo "Cleanup build artifacts..." && \
     find /app -name '*.pyc' -delete && \
     find /app -name '__pycache__' -type d -delete
@@ -49,34 +50,32 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# 安装运行时系统依赖
+# --- !! 修改这里：同样添加 libgl1-mesa-glx !! ---
 RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         libsm6 \
-        libxext6 && \
+        libxext6 \
+        libgl1-mesa-glx && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# 创建非 root 用户和组
 RUN groupadd -r appuser && \
     useradd --no-log-init -r -g appuser appuser && \
     mkdir -p /home/appuser/.cache && \
     chown -R appuser:appuser /home/appuser && \
     chown -R appuser:appuser /app
 
-# 复制 Python 环境和可执行文件
+# 复制 Python 环境
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-# 复制预先下载的 RapidOCR 模型
+# 复制模型
 COPY --from=builder --chown=appuser:appuser /root/.RapidOCR /home/appuser/.RapidOCR
 
 # 复制应用代码
 COPY --chown=appuser:appuser . .
 
-# 切换到非 root 用户
 USER appuser
 
-# 运行应用
 CMD ["gunicorn", "-c", "gunicorn_config.py", "app:app"]
