@@ -50,8 +50,8 @@ def test():
 def files():
     file = request.files.get('file')
     if file is not None:
-        with image_context(file) as image
-        return readImage(image)
+        with image_context(file) as image:
+            return readImage(image)
     else:
         return jsonify({"code": 400, "message": "file is required"}), 400
 
@@ -68,8 +68,8 @@ def process_base64():
         if len(base64_str) > 10 * 1024 * 1024:  # 10MB as an example
             return jsonify({'error': 'Base64 string exceeds size limit.'}), 400
 
-        with image_context(base64_str) as image
-        return  readImage(image)
+        with image_context(base64_str) as image:
+            return  readImage(image)
 
     except base64.binascii.Error:
         return jsonify({'error': 'Invalid Base64 format.'}), 400
