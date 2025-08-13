@@ -5,15 +5,12 @@ import requests
 import logging
 import base64
 import io
-from rapidocr.utils import Global
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-font_path =  'FZYTK.TTF'
 
-global_config = Global(font_path=font_path)
 
-engine = RapidOCR(global_params=global_config)
+engine = RapidOCR()
 
 
 def readImage(image):
