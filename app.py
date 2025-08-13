@@ -5,12 +5,33 @@ import requests
 import logging
 import base64
 import io
-
+import gc
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
 engine = RapidOCR()
+
+from contextlib import contextmanager
+
+@contextmanager
+def image_context(image_source):
+    """图像上下文管理器，确保资源释放"""
+    image = None
+    try:
+        if isinstance(image_source, str):  # base64字符串
+            decoded_bytes = base64.b64decode(image_source)
+            image = Image.open(io.BytesIO(decoded_bytes))
+        elif hasattr(image_source, 'read'):  # 文件对象
+            image = Image.open(image_source)
+        else:  # PIL Image对象
+            image = image_source
+        yield image
+    finally:
+        if image:
+            image.close()
+        gc.collect()  # 强制垃圾回收
+
 
 
 def readImage(image):
@@ -29,7 +50,8 @@ def test():
 def files():
     file = request.files.get('file')
     if file is not None:
-        return readImage(Image.open(file))
+        with image_context(file) as image
+        return readImage(image)
     else:
         return jsonify({"code": 400, "message": "file is required"}), 400
 
@@ -46,15 +68,8 @@ def process_base64():
         if len(base64_str) > 10 * 1024 * 1024:  # 10MB as an example
             return jsonify({'error': 'Base64 string exceeds size limit.'}), 400
 
-        # 解码base64字符串
-        decoded_bytes = base64.b64decode(base64_str)
-
-        # 验证解码后的数据是否为图像格式
-        # 这里使用了PIL库尝试打开图像，如果失败则返回错误
-        image = Image.open(io.BytesIO(decoded_bytes))
-
-        # 继续处理图像
-        return readImage(image)
+        with image_context(base64_str) as image
+        return  readImage(image)
 
     except base64.binascii.Error:
         return jsonify({'error': 'Invalid Base64 format.'}), 400
@@ -63,6 +78,8 @@ def process_base64():
     except Exception as e:
         # 捕获其他潜在异常，并返回通用错误消息
         return jsonify({'error': f'An error occurred: {str(e)}'}), 500
+    finally:
+        gc.collect()
 
 
 @app.route('/ocr', methods=['POST'])
