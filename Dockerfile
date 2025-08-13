@@ -65,7 +65,7 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # 复制应用代码
 COPY --chown=appuser:appuser . .
-COPY FZYTK.TTF /usr/local/lib/python3.13/site-packages/rapidocr/models/FZYTTK.TTF
+COPY FZYTK.TTF /usr/local/lib/python3.13/site-packages/rapidocr/models/FZYTK.TTF
 USER appuser
 
 CMD ["gunicorn", "-c", "gunicorn_config.py", "app:app"]
