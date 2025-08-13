@@ -1,6 +1,7 @@
 version: '3'
 services:
   ocr:
+    restart: always
     build: .
     container_name: ocr
     ports:
