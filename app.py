@@ -8,7 +8,8 @@ import io
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-engine = RapidOCR()
+font_path =  'FZYTK.TTF'
+engine = RapidOCR(font_path=font_path)
 
 
 def readImage(image):
